@@ -52,6 +52,7 @@
         <oceanbase.jdbc.version>2.4.3</oceanbase.jdbc.version>
         <xugu.jdbc.version>12.2.0</xugu.jdbc.version>
         <iris.jdbc.version>3.0.0</iris.jdbc.version>
+        <avatica.version>1.24.0</avatica.version>
     </properties>
 
     <dependencyManagement>
@@ -202,6 +203,13 @@
                 <version>${iris.jdbc.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+
+                <groupId>org.apache.calcite.avatica</groupId>
+                <artifactId>avatica</artifactId>
+                <version>${avatica.version}</version>
+                <scope>provided</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -307,6 +315,10 @@
         <dependency>
             <groupId>com.intersystems</groupId>
             <artifactId>intersystems-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.calcite.avatica</groupId>
+            <artifactId>avatica</artifactId>
         </dependency>
     </dependencies>
 
