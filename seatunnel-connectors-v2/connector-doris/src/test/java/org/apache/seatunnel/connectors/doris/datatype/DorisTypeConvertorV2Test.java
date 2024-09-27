@@ -320,6 +320,36 @@ public class DorisTypeConvertorV2Test {
     }
 
     @Test
+    public void testConvertIpv4() {
+        BasicTypeDefine<Object> typeDefine =
+                BasicTypeDefine.builder()
+                        .name("test")
+                        .columnType("ipv4")
+                        .dataType("varchar")
+                        .build();
+        Column column = DorisTypeConverterV1.INSTANCE.convert(typeDefine);
+        Assertions.assertEquals(typeDefine.getName(), column.getName());
+        Assertions.assertEquals(BasicType.STRING_TYPE, column.getDataType());
+        Assertions.assertEquals(DorisTypeConverterV1.MAX_IPV4_LENGTH, column.getColumnLength());
+        Assertions.assertEquals(typeDefine.getColumnType(), column.getSourceType());
+    }
+
+    @Test
+    public void testConvertIpv6() {
+        BasicTypeDefine<Object> typeDefine =
+                BasicTypeDefine.builder()
+                        .name("test")
+                        .columnType("ipv6")
+                        .dataType("varchar")
+                        .build();
+        Column column = DorisTypeConverterV2.INSTANCE.convert(typeDefine);
+        Assertions.assertEquals(typeDefine.getName(), column.getName());
+        Assertions.assertEquals(BasicType.STRING_TYPE, column.getDataType());
+        Assertions.assertEquals(DorisTypeConverterV1.MAX_IPV6_LENGTH, column.getColumnLength());
+        Assertions.assertEquals(typeDefine.getColumnType(), column.getSourceType());
+    }
+
+    @Test
     public void testConvertArray() {
         BasicTypeDefine<Object> typeDefine =
                 BasicTypeDefine.builder()
