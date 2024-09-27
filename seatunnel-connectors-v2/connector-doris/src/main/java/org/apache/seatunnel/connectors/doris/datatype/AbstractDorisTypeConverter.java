@@ -75,6 +75,10 @@ public abstract class AbstractDorisTypeConverter implements TypeConverter<BasicT
     public static final String DORIS_JSON = "JSON";
     public static final String DORIS_JSONB = "JSONB";
 
+    public static final String DORIS_IPV4 = "IPV4";
+    public static final String DORIS_IPV6 = "IPV6";
+    public static final String DORIS_VARIANT = "variant";
+
     public static final Long DEFAULT_PRECISION = 9L;
     public static final Long MAX_PRECISION = 38L;
 
@@ -91,6 +95,8 @@ public abstract class AbstractDorisTypeConverter implements TypeConverter<BasicT
     public static final long POWER_2_8 = (long) Math.pow(2, 8);
     public static final long POWER_2_16 = (long) Math.pow(2, 16);
     public static final long MAX_STRING_LENGTH = 2147483643;
+    public static final long MAX_IPV4_LENGTH = 15;
+    public static final long MAX_IPV6_LENGTH = 39;
 
     protected PhysicalColumn.PhysicalColumnBuilder getPhysicalColumnBuilder(
             BasicTypeDefine typeDefine) {
@@ -179,8 +185,17 @@ public abstract class AbstractDorisTypeConverter implements TypeConverter<BasicT
                 builder.columnLength(20L);
                 builder.scale(0);
                 break;
+            case DORIS_IPV4:
+                builder.columnLength(MAX_IPV4_LENGTH);
+                builder.dataType(BasicType.STRING_TYPE);
+                break;
+            case DORIS_IPV6:
+                builder.columnLength(MAX_IPV6_LENGTH);
+                builder.dataType(BasicType.STRING_TYPE);
+                break;
             case DORIS_STRING:
             case DORIS_JSON:
+            case DORIS_VARIANT:
                 builder.dataType(BasicType.STRING_TYPE);
                 builder.columnLength(MAX_STRING_LENGTH);
                 break;

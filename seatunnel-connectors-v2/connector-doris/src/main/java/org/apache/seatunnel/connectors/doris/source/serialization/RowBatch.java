@@ -18,6 +18,7 @@
 package org.apache.seatunnel.connectors.doris.source.serialization;
 
 import org.apache.seatunnel.shade.org.apache.arrow.memory.RootAllocator;
+import org.apache.seatunnel.shade.org.apache.arrow.vector.BaseIntVector;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.BigIntVector;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.BitVector;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.DateDayVector;
@@ -30,6 +31,7 @@ import org.apache.seatunnel.shade.org.apache.arrow.vector.IntVector;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.SmallIntVector;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.TimeStampMicroVector;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.TinyIntVector;
+import org.apache.seatunnel.shade.org.apache.arrow.vector.UInt4Vector;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.VarCharVector;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.seatunnel.shade.org.apache.arrow.vector.complex.ListVector;
@@ -52,6 +54,7 @@ import org.apache.seatunnel.common.utils.DateTimeUtils;
 import org.apache.seatunnel.common.utils.DateUtils;
 import org.apache.seatunnel.connectors.doris.exception.DorisConnectorErrorCode;
 import org.apache.seatunnel.connectors.doris.exception.DorisConnectorException;
+import org.apache.seatunnel.connectors.doris.util.IPUtils;
 
 import org.apache.doris.sdk.thrift.TScanBatchResult;
 
@@ -72,6 +75,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.IntFunction;
+
+import static org.apache.seatunnel.connectors.doris.util.IPUtils.convertLongToIPv4Address;
 
 @Slf4j
 public class RowBatch {
@@ -384,6 +389,51 @@ public class RowBatch {
                             stringValue = completeMilliseconds(stringValue);
                             return LocalDateTime.parse(stringValue, dateTimeV2Formatter);
                         });
+                break;
+            case "IPV4":
+                BaseIntVector ipv4Vector;
+                if (fieldVector instanceof IntVector) {
+                    ipv4Vector = (IntVector) fieldVector;
+                    Preconditions.checkArgument(
+                            minorType.equals(MinorType.INT),
+                            typeMismatchMessage(currentType, minorType));
+                    addValueToRowForAllRows(
+                            col,
+                            rowIndex ->
+                                    ipv4Vector.isNull(rowIndex)
+                                            ? null
+                                            : convertLongToIPv4Address(
+                                                    ipv4Vector.getValueAsLong(rowIndex)));
+                } else if (fieldVector instanceof UInt4Vector) {
+                    ipv4Vector = (UInt4Vector) fieldVector;
+                    Preconditions.checkArgument(
+                            minorType.equals(MinorType.UINT4),
+                            typeMismatchMessage(currentType, minorType));
+                    addValueToRowForAllRows(
+                            col,
+                            rowIndex ->
+                                    ipv4Vector.isNull(rowIndex)
+                                            ? null
+                                            : convertLongToIPv4Address(
+                                                    ipv4Vector.getValueAsLong(rowIndex)));
+                }
+                break;
+            case "IPV6":
+                if (fieldVector instanceof VarCharVector) {
+                    VarCharVector ipv6VarcharVector = (VarCharVector) fieldVector;
+                    Preconditions.checkArgument(
+                            minorType.equals(MinorType.VARCHAR),
+                            typeMismatchMessage(currentType, minorType));
+                    addValueToRowForAllRows(
+                            col,
+                            rowIndex -> {
+                                if (ipv6VarcharVector.isNull(rowIndex)) {
+                                    return null;
+                                }
+                                String ipv6Str = new String(ipv6VarcharVector.get(rowIndex));
+                                return IPUtils.fromBigInteger(new BigInteger(ipv6Str));
+                            });
+                }
                 break;
             case "STRING":
                 if (fieldVector instanceof FixedSizeBinaryVector) {
